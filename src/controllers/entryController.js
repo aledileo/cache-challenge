@@ -1,14 +1,17 @@
 const Entry = require('../models/entry');
+const { v4 } = require('uuid');
 
 async function addRandomEntryByKey(key) {
-  const randomString = `Random string for '${key}'`;
   const entry = new Entry({
     key,
-    value: randomString,
+    value: v4(),
+    lastRead: Date.now(),
   });
 
   return entry.save();
 }
+
+const isEntryExpired = (entry) => Boolean(Date.now() - entry.lastRead >= 1000 * 15);
 
 exports.getEntryById = async (req, res) => {
   try {
@@ -18,10 +21,19 @@ exports.getEntryById = async (req, res) => {
       console.log("Cache miss");
       const newEntry = await addRandomEntryByKey(req.params.id);
       res.status(201).send(newEntry.value);
-    } else {
-      console.log("Cache hit");
-      res.status(200).send(entry.value);
+      return;
     }
+
+    if (isEntryExpired(entry)) {
+      await Entry.findByIdAndDelete({ _id: entry._id });
+      const newEntry = await addRandomEntryByKey(req.params.id);
+      res.status(201).send(newEntry.value);
+      return;
+    }
+
+    console.log("Cache hit");
+    res.status(200).send(entry.value);
+    await Entry.findByIdAndUpdate({ _id: entry._id}, { lastRead: Date.now() });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -32,7 +44,6 @@ exports.getAllEntries = async (req, res) => {
     const entries = await Entry.find();
     res.status(200).json(entries);
   } catch(e) {
-    console.log(e)
     res.status(500).json({ message: e.message });
   }
 }

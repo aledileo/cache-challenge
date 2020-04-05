@@ -9,9 +9,9 @@ const entrySchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  ttl: {
-    type: Number,
-    default: 300
+  lastRead: {
+    type: Date,
+    required: true
   }
 });
 
