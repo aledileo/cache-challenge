@@ -58,3 +58,12 @@ exports.deleteEntryByKey = async (req, res) => {
     res.status(500).json({ message: e.message });
   }
 }
+
+exports.deleteAllEntries = async (req, res) => {
+  try {
+    const returnedQuery = await Entry.deleteMany({});
+    res.status(200).json(returnedQuery);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+}
