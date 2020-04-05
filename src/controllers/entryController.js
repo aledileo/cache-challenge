@@ -10,7 +10,7 @@ async function addRandomEntryByKey(key) {
   return entry.save();
 }
 
-exports.getById = async (req, res) => {
+exports.getEntryById = async (req, res) => {
   try {
     let entry = await Entry.findOne({ key: req.params.id });
     
@@ -23,16 +23,28 @@ exports.getById = async (req, res) => {
       res.status(200).send(entry.value);
     }
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    res.status(500).json({ message: e.message });
   }
 }
 
-exports.get = async (req, res) => {
+exports.getAllEntries = async (req, res) => {
   try {
     const entries = await Entry.find();
     res.status(200).json(entries);
   } catch(e) {
     console.log(e)
-    res.status(500).json({ message: e.message })
+    res.status(500).json({ message: e.message });
+  }
+}
+
+exports.updateEntryById = async (req, res) => {
+  try {
+    const query = { key: req.params.id };
+    const updateOperation = { value: req.body.value };
+    const options = { new: true };
+    const updatedEntry = await Entry.findOneAndUpdate(query, updateOperation, options);
+    res.status(200).json(updatedEntry);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 }
