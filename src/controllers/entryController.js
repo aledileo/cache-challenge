@@ -39,6 +39,7 @@ async function handleCacheOverflow () {
 exports.getEntryById = async (req, res) => {
   try {
     let entry = await Entry.findOne({ key: req.params.id });
+    console.log('holu')
     
     if (!entry) {
       console.log("Cache miss");

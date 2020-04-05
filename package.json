@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/index.js"
+    "start": "nodemon src/index.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +16,11 @@
     "uuid": "^7.0.3"
   },
   "devDependencies": {
+    "@shelf/jest-mongodb": "^1.1.5",
     "dotenv": "^8.2.0",
-    "nodemon": "^2.0.2"
+    "jest": "^25.2.7",
+    "mongodb-memory-server": "^6.5.2",
+    "nodemon": "^2.0.2",
+    "supertest": "^4.0.2"
   }
 }
