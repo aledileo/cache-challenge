@@ -2,16 +2,39 @@ const Entry = require('../models/entry');
 const { v4 } = require('uuid');
 
 async function addRandomEntryByKey(key) {
-  const entry = new Entry({
-    key,
-    value: v4(),
-    lastRead: Date.now(),
-  });
-
-  return entry.save();
+  try {
+    const entriesCount = await Entry.countDocuments({});
+    if (entriesCount >= process.env.MAX_CACHE_SIZE) {
+      await handleCacheOverflow();
+    }
+  
+    const entry = new Entry({
+      key,
+      value: v4(),
+      lastRead: Date.now(),
+    });
+  
+    return entry.save();
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
 }
 
 const isEntryExpired = (entry) => Boolean(Date.now() - entry.lastRead >= 1000 * 15);
+
+/**
+ * The entry to be deleted is the oldest one
+ */
+async function handleCacheOverflow () {
+  try {
+    const oldestEntry = (await Entry.find().sort({ lastRead: 'asc' }))[0];
+    await Entry.findByIdAndDelete({ _id: oldestEntry._id });
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
+}
 
 exports.getEntryById = async (req, res) => {
   try {
@@ -51,7 +74,7 @@ exports.getAllEntries = async (req, res) => {
 exports.updateEntryById = async (req, res) => {
   try {
     const query = { key: req.params.id };
-    const updateOperation = { value: req.body.value };
+    const updateOperation = { value: req.body.value, lastRead: Date.now() };
     const options = { new: true };
     const updatedEntry = await Entry.findOneAndUpdate(query, updateOperation, options);
     res.status(200).json(updatedEntry);
