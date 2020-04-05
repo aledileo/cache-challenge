@@ -1,10 +1,13 @@
 const Entry = require('../models/entry');
 const { v4 } = require('uuid');
 
+const ttl = env.process.TTL || 15;
+const maxCacheSize = env.process.MAX_CACHE_SIZE || 3;
+
 async function addRandomEntryByKey(key) {
   try {
     const entriesCount = await Entry.countDocuments({});
-    if (entriesCount >= process.env.MAX_CACHE_SIZE) {
+    if (entriesCount >= maxCacheSize) {
       await handleCacheOverflow();
     }
   
@@ -21,7 +24,7 @@ async function addRandomEntryByKey(key) {
   }
 }
 
-const isEntryExpired = (entry) => Boolean(Date.now() - entry.lastRead >= 1000 * 15);
+const isEntryExpired = (entry) => Boolean(Date.now() - entry.lastRead >= 1000 * ttl);
 
 /**
  * The entry to be deleted is the oldest one
@@ -38,9 +41,7 @@ async function handleCacheOverflow () {
 
 exports.getEntryById = async (req, res) => {
   try {
-    let entry = await Entry.findOne({ key: req.params.id });
-    console.log('holu')
-    
+    let entry = await Entry.findOne({ key: req.params.id });    
     if (!entry) {
       console.log("Cache miss");
       const newEntry = await addRandomEntryByKey(req.params.id);
