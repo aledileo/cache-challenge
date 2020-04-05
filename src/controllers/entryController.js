@@ -48,3 +48,13 @@ exports.updateEntryById = async (req, res) => {
     res.status(500).json({ message: e.message });
   }
 }
+
+exports.deleteEntryByKey = async (req, res) => {
+  try {
+    const query = { key: req.params.id };
+    const deletedEntry = await Entry.findOneAndDelete(query);
+    res.status(200).json(deletedEntry);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+}
